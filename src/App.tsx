@@ -2,15 +2,17 @@ import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
 
 import Hero from "./components/sections/Hero";
+import Features from "./components/sections/Features";
 
 function App() {
   return (
-    <div className="container mx-auto flex min-h-screen flex-col justify-between">
+    <div className="mx-auto flex min-h-svh max-w-280 flex-col justify-between px-6">
       <Header />
 
       {/*  */}
-      <main>
+      <main className="flex flex-col">
         <Hero />
+        <Features />
       </main>
 
       {/*  */}
