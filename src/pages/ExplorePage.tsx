@@ -2,9 +2,9 @@ import Map from "../components/ui/MapContainer";
 
 function ExplorePage() {
   return (
-    <main className="flex min-h-0 flex-1 flex-col gap-4 pt-8 md:flex-row">
+    <main className="flex min-h-0 flex-1 flex-col gap-4 pt-8 md:min-h-0 md:flex-1 md:flex-row">
       {/* Map */}
-      <div className="h-[50vh] min-h-0 min-w-0 flex-1 md:h-auto">
+      <div className="h-[50vh] w-full shrink-0 md:h-auto md:min-w-0 md:flex-1">
         <Map />
       </div>
 
