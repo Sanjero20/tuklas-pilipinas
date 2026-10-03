@@ -5,44 +5,52 @@ const tags = ["TUKLAS", "MAPA NG PILIPINAS", "FREE", "NO SIGN-UP"];
 
 function Hero() {
   return (
-    <section className="flex items-center gap-4">
+    <section className="grid items-center gap-10 py-12 sm:py-16 lg:max-h-svh lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:py-12">
       {/* Left */}
-      <div className="flex w-2/3 flex-col gap-8">
+      <div className="flex flex-col gap-6 lg:gap-8">
         {/* Tags */}
-        <div className="flex items-center gap-2">
-          <span>{translateToBaybayin("Pilipinas")}</span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs tracking-widest uppercase">
+          <span
+            aria-hidden="true"
+            className="font-baybayin text-accent text-base tracking-normal normal-case"
+          >
+            {translateToBaybayin("Pilipinas")}
+          </span>
 
-          <div className="text-mute flex gap-2">
-            {tags.map((tag, index) => (
-              <span key={index}>
-                {tag}
-                {index < tags.length - 1 && <> &middot;</>}
-              </span>
-            ))}
-          </div>
+          {tags.map((tag, index) => (
+            <span key={tag} className="text-mute flex gap-2">
+              {tag}
+              {/* separators only when there's room; on mobile the tags just wrap */}
+              {index < tags.length - 1 && (
+                <span aria-hidden="true" className="hidden sm:inline">
+                  &middot;
+                </span>
+              )}
+            </span>
+          ))}
         </div>
 
         {/* Headline */}
-        <h1 className="font-serif text-8xl">
+        <h1 className="font-serif text-5xl leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl xl:text-[80px]">
           Learn the map of the Philippines,{" "}
-          <em className="text-accent">province by province.</em>
+          <em className="text-accent not-italic">province by province.</em>
         </h1>
 
         {/* Description */}
-        <p className="text-muted text-lg">
+        <p className="text-mute max-w-[46ch] text-base sm:text-lg">
           Stop scrolling through lists. Point at the map, get instant feedback,
           and let the provinces you miss come back until they stick.
         </p>
 
         {/* CTA */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3">
           <Button>START TRAINING</Button>
           <Button variant="secondary">EXPLORE THE MAP</Button>
         </div>
       </div>
 
       {/* Right */}
-      <div className="border-ink bg-sea aspect-3/4 w-1/3 border"></div>
+      <div className="border-ink bg-sea mx-auto aspect-square w-full max-w-md border sm:aspect-3/4 lg:mx-0 lg:h-[min(36rem,calc(100svh_-_14rem))] lg:w-auto lg:max-w-none lg:justify-self-end"></div>
     </section>
   );
 }
