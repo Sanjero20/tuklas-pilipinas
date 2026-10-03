@@ -1,9 +1,11 @@
+import { Route, Switch } from "wouter";
+
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
 
-import Hero from "./components/sections/Hero";
-import Features from "./components/sections/Features";
-import CtaBand from "./components/sections/CtaBand";
+import LandingPage from "./pages/LandingPage";
+import ExplorePage from "./pages/ExplorePage";
+import PlayPage from "./pages/PlayPlage";
 
 function App() {
   return (
@@ -11,11 +13,12 @@ function App() {
       <Header />
 
       {/*  */}
-      <main className="flex flex-col">
-        <Hero />
-        <Features />
-        <CtaBand />
-      </main>
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route path="/explore" component={ExplorePage} />
+        <Route path="/play" component={PlayPage} />
+        <Route>404: Page not found</Route>
+      </Switch>
 
       {/*  */}
       <Footer />
