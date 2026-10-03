@@ -1,5 +1,5 @@
-import Button from "../components/ui/Button";
-import { translateToBaybayin } from "../utils/baybayin";
+import Button from "../ui/Button";
+import { translateToBaybayin } from "../../utils/baybayin";
 
 const tags = ["TUKLAS", "MAPA NG PILIPINAS", "FREE", "NO SIGN-UP"];
 

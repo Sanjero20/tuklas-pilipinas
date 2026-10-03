@@ -1,6 +1,7 @@
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
-import Hero from "./layouts/Hero";
+
+import Hero from "./components/sections/Hero";
 
 function App() {
   return (
