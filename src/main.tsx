@@ -9,6 +9,8 @@ import "@fontsource/dm-mono/400.css";
 import "@fontsource/dm-mono/500.css";
 import "@fontsource/noto-sans-tagalog/tagalog-400.css";
 
+import "leaflet/dist/leaflet.css";
+
 import "./styles/index.css";
 
 createRoot(document.getElementById("root")!).render(

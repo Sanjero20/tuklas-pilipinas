@@ -1,4 +1,6 @@
 import Button from "../ui/Button";
+import Map from "../ui/MapContainer";
+
 import { translateToBaybayin } from "../../utils/baybayin";
 
 const tags = ["TUKLAS", "MAPA NG PILIPINAS", "FREE", "NO SIGN-UP"];
@@ -50,7 +52,9 @@ function Hero() {
       </div>
 
       {/* Right */}
-      <div className="border-ink bg-sea mx-auto aspect-square w-full max-w-md border sm:aspect-3/4 lg:mx-0 lg:h-[min(36rem,calc(100svh_-_14rem))] lg:w-auto lg:max-w-none lg:justify-self-end"></div>
+      <div className="border-ink bg-sea mx-auto aspect-square w-full max-w-md border sm:aspect-3/4 lg:mx-0 lg:h-[min(36rem,calc(100svh_-_14rem))] lg:w-auto lg:max-w-none lg:justify-self-end">
+        <Map />
+      </div>
     </section>
   );
 }
