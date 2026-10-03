@@ -1,5 +1,6 @@
 import Header from "./layouts/Header";
 import Footer from "./layouts/Footer";
+import Hero from "./layouts/Hero";
 
 function App() {
   return (
@@ -7,7 +8,9 @@ function App() {
       <Header />
 
       {/*  */}
-      <main></main>
+      <main>
+        <Hero />
+      </main>
 
       {/*  */}
       <Footer />
