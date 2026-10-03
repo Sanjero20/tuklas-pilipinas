@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/* dark mode is toggled by adding the "dark" class to <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #f8f5ee;
+  --ink: #1f2a44;
+  --mute: #6b7488;
+  --sea: #e8eef2;
+  --land: #fbf8f1;
+  --accent: #2a56a5;
+  --gold: #d9a521;
+  --ok: #2f7d5b;
+  --bad: #b4443c;
+}
+
+.dark {
+  --paper: #101828;
+  --ink: #e8e4d8;
+  --mute: #98a2b8;
+  --sea: #172033;
+  --land: #222e46;
+  --accent: #7aa2e8;
+  --gold: #e8b93a;
+  --ok: #5fbf92;
+  --bad: #e5837b;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-sea: var(--sea);
+  --color-land: var(--land);
+  --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+
+  /* flag colors: same in light and dark, used for the tricolor line */
+  --color-flag-blue: #0038a8;
+  --color-flag-red: #ce1126;
+  --color-flag-yellow: #fcd116;
+
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --font-baybayin: "Noto Sans Tagalog", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans;
+  }
+}
