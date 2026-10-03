@@ -3,6 +3,7 @@ import Footer from "./layouts/Footer";
 
 import Hero from "./components/sections/Hero";
 import Features from "./components/sections/Features";
+import CtaBand from "./components/sections/CtaBand";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <main className="flex flex-col">
         <Hero />
         <Features />
+        <CtaBand />
       </main>
 
       {/*  */}
