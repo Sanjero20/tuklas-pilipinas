@@ -1,3 +1,5 @@
+import ThemeToggle from "../components/ui/ThemeToggle";
+
 function Header() {
   return (
     <header className="border-ink flex items-center justify-between border-b py-4">
@@ -8,12 +10,11 @@ function Header() {
       </div>
 
       {/*  */}
-      <nav className="space-x-2 font-mono text-sm">
+      <nav className="space-x-4 font-mono text-sm">
         <a href="">Play</a>
         <a href="">Explore</a>
 
-        {/* Theme toggle */}
-        {/* <button></button> */}
+        <ThemeToggle />
       </nav>
     </header>
   );

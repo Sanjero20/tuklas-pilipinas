@@ -54,3 +54,16 @@
     @apply bg-paper text-ink font-sans;
   }
 }
+
+/* Smooth toggle theme animation */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 250ms ease,
+    color 250ms ease,
+    border-color 250ms ease,
+    fill 250ms ease,
+    stroke 250ms ease !important;
+}
