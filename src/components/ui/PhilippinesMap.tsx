@@ -1,11 +1,10 @@
 import { GeoJSON, MapContainer } from "react-leaflet";
 import type { FeatureCollection } from "geojson";
 
-import regionsData from "@/data/geojson/regions.json";
 import provincesData from "@/data/geojson/provinces.json";
+
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 
-const regions = regionsData as FeatureCollection;
 const provinces = provincesData as FeatureCollection;
 
 const landStyles = {
@@ -37,7 +36,6 @@ function PhilippinesMap() {
       attributionControl={false}
       doubleClickZoom={false}
     >
-      <GeoJSON data={regions} style={landStyles} />
       <GeoJSON data={provinces} style={landStyles} />
     </MapContainer>
   );
