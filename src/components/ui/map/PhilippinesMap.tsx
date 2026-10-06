@@ -8,25 +8,57 @@ import type { StyleFunction } from "leaflet";
 import type { Feature, FeatureCollection } from "geojson";
 
 import { PHILIPPINES_CENTER, PHILIPPINES_BOUNDS } from "./config";
-import { HOVER_STYLES, LAND_STYLES, SELECTED_STYLES } from "./styles";
+import {
+  HIGHLIGHTED_STYLES,
+  HOVER_STYLES,
+  LAND_STYLES,
+  SELECTED_STYLES,
+} from "./styles";
 
 import provincesData from "@/data/geojson/provinces.json";
+import { getPlaceMetadata } from "@/utils/place";
+import type { IslandGroup } from "@/data/philippines/places";
 
 const provinces = provincesData as FeatureCollection;
 
 interface Props {
   selectedPlaceId?: string;
+  selectedRegion?: string;
+  islandGroup?: IslandGroup;
   onPlaceClick?: (feature: Feature) => void;
 }
 
-function PhilippinesMap({ selectedPlaceId, onPlaceClick }: Props) {
+function PhilippinesMap({
+  selectedPlaceId,
+  selectedRegion,
+  islandGroup,
+  onPlaceClick,
+}: Props) {
   const getStyle: StyleFunction = (feature) => {
-    if (!feature) return LAND_STYLES;
+    if (!feature) {
+      return LAND_STYLES;
+    }
 
-    const isSelected = feature.properties?.psgc_id === selectedPlaceId;
+    const metadata = getPlaceMetadata(feature.properties);
 
-    if (isSelected) {
+    if (!metadata) {
+      return LAND_STYLES;
+    }
+
+    if (metadata.id === selectedPlaceId) {
       return SELECTED_STYLES;
+    }
+
+    if (!islandGroup && !selectedRegion) {
+      return LAND_STYLES;
+    }
+
+    const matchesIsland = !islandGroup || metadata.islandGroup === islandGroup;
+
+    const matchesRegion = !selectedRegion || metadata.region === selectedRegion;
+
+    if (matchesIsland && matchesRegion) {
+      return HIGHLIGHTED_STYLES;
     }
 
     return LAND_STYLES;
