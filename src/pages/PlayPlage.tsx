@@ -90,6 +90,7 @@ function PlayPage() {
 
     setGuessed(new Set());
     setWrongProvinceId(null);
+    setStreak(0);
     setHint("");
     setCurrentProvince(nextProvince);
   };
