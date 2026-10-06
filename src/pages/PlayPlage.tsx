@@ -1,20 +1,74 @@
+/* eslint-disable react-hooks/purity */
+import { useRef, useState } from "react";
+
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
-import { useState } from "react";
+
+import provinceData from "@/data/geojson/provinces.json";
+import { getPlaceMetadata } from "@/utils/place";
+import type { Feature } from "geojson";
+
+const provinces = provinceData.features
+  .map((feature) => getPlaceMetadata(feature.properties))
+  .filter((place) => place != null);
+
+const getRandomProvince = (guessed: Set<string>) => {
+  const available = provinces.filter((province) => !guessed.has(province.id));
+
+  return available[Math.floor(Math.random() * available.length)];
+};
 
 function PlayPage() {
+  const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [guessed, setGuessed] = useState<Set<string>>(new Set());
+  const [wrongProvinceId, setWrongProvinceId] = useState("");
+
   const [hint, setHint] = useState("");
 
-  const handleClick = () => {};
+  const [currentProvince, setCurrentProvince] = useState(
+    provinces[Math.floor(Math.random() * provinces.length)],
+  );
+
+  const handleClick = (feature: Feature) => {
+    const clickedProvince = getPlaceMetadata(feature.properties);
+
+    if (!clickedProvince || !currentProvince) return;
+
+    if (clickedProvince.id === currentProvince.id) {
+      // Correct Guess
+      const nextGuessed = new Set(guessed);
+      nextGuessed.add(currentProvince.id);
+      setGuessed(nextGuessed);
+
+      const nextProvince = getRandomProvince(nextGuessed);
+
+      if (nextProvince) {
+        setCurrentProvince(nextProvince);
+      }
+    } else {
+      // Wrong Guess
+      setWrongProvinceId(clickedProvince.id);
+
+      if (wrongTimeoutRef.current) {
+        clearTimeout(wrongTimeoutRef.current);
+      }
+
+      wrongTimeoutRef.current = setTimeout(() => {
+        setWrongProvinceId("");
+      }, 1000);
+    }
+  };
 
   return (
     <main className="flex min-h-0 flex-1 flex-col gap-4 pt-8 md:flex-row">
       {/* Map */}
       <div className="h-[50vh] w-full shrink-0 md:h-auto md:min-w-0 md:flex-1">
         <PhilippinesMap
-          // selectedPlaceId={selectedPlace?.id}
           onPlaceClick={handleClick}
+          guessedPlaceIds={guessed}
+          wrongPlaceId={wrongProvinceId}
         />
       </div>
 
@@ -41,7 +95,9 @@ function PlayPage() {
 
         <div className="space-y-2">
           <p className="text-mute font-mono text-xs">Where is ...</p>
-          <p className="text-ink font-serif text-4xl">{"PROVINCE"}?</p>
+          <p className="text-ink font-serif text-4xl">
+            {currentProvince.name}?
+          </p>
         </div>
 
         <Separator />

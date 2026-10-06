@@ -9,10 +9,12 @@ import type { Feature, FeatureCollection } from "geojson";
 
 import { PHILIPPINES_CENTER, PHILIPPINES_BOUNDS } from "./config";
 import {
+  CORRECT_STYLES,
   HIGHLIGHTED_STYLES,
   HOVER_STYLES,
   LAND_STYLES,
   SELECTED_STYLES,
+  WRONG_STYLES,
 } from "./styles";
 
 import provincesData from "@/data/geojson/provinces.json";
@@ -26,6 +28,11 @@ interface Props {
   selectedPlaceId?: string;
   selectedRegion?: string;
   islandGroup?: IslandGroup;
+
+  // For play mode
+  wrongPlaceId?: string;
+  guessedPlaceIds?: Set<string>;
+
   onPlaceClick?: (feature: Feature) => void;
 }
 
@@ -33,6 +40,8 @@ function PhilippinesMap({
   selectedPlaceId,
   selectedRegion,
   islandGroup,
+  wrongPlaceId,
+  guessedPlaceIds,
   onPlaceClick,
 }: Props) {
   const getStyle: StyleFunction = (feature) => {
@@ -42,19 +51,24 @@ function PhilippinesMap({
 
     if (!metadata) return LAND_STYLES;
 
-    // 1. Selected province
+    if (metadata.id === wrongPlaceId) {
+      return WRONG_STYLES;
+    }
+
+    if (guessedPlaceIds?.has(metadata.id)) {
+      return CORRECT_STYLES;
+    }
+
     if (metadata.id === selectedPlaceId) {
       return SELECTED_STYLES;
     }
 
-    // 2. Selected region
     if (selectedRegion) {
       return metadata.region === selectedRegion
         ? HIGHLIGHTED_STYLES
         : LAND_STYLES;
     }
 
-    // 3. Selected island group
     if (islandGroup) {
       return metadata.islandGroup === islandGroup
         ? HIGHLIGHTED_STYLES
