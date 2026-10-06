@@ -16,12 +16,14 @@ const provinces = provincesData.features
 function PlayPage() {
   const [islandGroup, setIslandGroup] = useState<IslandGroup | undefined>();
 
+  const [hint, setHint] = useState("");
   const [streak, setStreak] = useState(0);
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
   const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
-  const [hint, setHint] = useState("");
+  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
 
   const wrongTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playableProvinces = useMemo(() => {
     if (!islandGroup) return provinces;
@@ -48,6 +50,17 @@ function PlayPage() {
 
     // Wrong guess
     if (clickedProvince.id !== currentProvince.id) {
+      setFeedback("wrong");
+
+      if (feedbackTimeout.current) {
+        clearTimeout(feedbackTimeout.current);
+      }
+
+      feedbackTimeout.current = setTimeout(() => {
+        setFeedback(null);
+        setWrongProvinceId(null);
+      }, 1000);
+
       setWrongProvinceId(clickedProvince.id);
       setStreak(0);
 
@@ -57,6 +70,7 @@ function PlayPage() {
 
       wrongTimeout.current = setTimeout(() => {
         setWrongProvinceId(null);
+        setFeedback(null);
       }, 1000);
 
       return;
@@ -66,6 +80,16 @@ function PlayPage() {
 
     const nextGuessed = new Set(guessed);
     nextGuessed.add(currentProvince.id);
+
+    setFeedback("correct");
+
+    if (feedbackTimeout.current) {
+      clearTimeout(feedbackTimeout.current);
+    }
+
+    feedbackTimeout.current = setTimeout(() => {
+      setFeedback(null);
+    }, 1000);
 
     setGuessed(nextGuessed);
     setStreak((prev) => prev + 1);
@@ -89,6 +113,7 @@ function PlayPage() {
 
     setStreak(0);
     setHint("");
+    setFeedback(null);
     setWrongProvinceId(null);
   };
 
@@ -151,7 +176,17 @@ function PlayPage() {
         <Separator />
 
         <div>
-          <p className="text-mute h-8">{hint ? `Hint: its in ${hint}` : ""}</p>
+          <p className="text-mute h-8">
+            {feedback === "correct" && (
+              <span className="text-ok">Correct!</span>
+            )}
+
+            {feedback === "wrong" && (
+              <span className="text-bad">Wrong — try again.</span>
+            )}
+
+            {!feedback && hint && `Hint: it's in ${hint}`}
+          </p>
 
           <div className="flex flex-wrap gap-2">
             <Chip onClick={() => setHint(currentProvince?.islandGroup ?? "")}>
