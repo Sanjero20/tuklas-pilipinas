@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import L from "leaflet";
-
-import { useMemo } from "react";
+import { useState } from "react";
 import { GeoJSON, MapContainer } from "react-leaflet";
 
 import type { StyleFunction } from "leaflet";
@@ -9,10 +7,15 @@ import type { Feature, FeatureCollection } from "geojson";
 
 import { PHILIPPINES_CENTER, PHILIPPINES_BOUNDS } from "./config";
 import {
+  CORRECT_HOVER_STYLES,
+  CORRECT_STYLES,
+  DISABLED_STYLES,
   HIGHLIGHTED_STYLES,
   HOVER_STYLES,
   LAND_STYLES,
+  SELECTED_HOVER_STYLES,
   SELECTED_STYLES,
+  WRONG_STYLES,
 } from "./styles";
 
 import provincesData from "@/data/geojson/provinces.json";
@@ -26,6 +29,11 @@ interface Props {
   selectedPlaceId?: string;
   selectedRegion?: string;
   islandGroup?: IslandGroup;
+
+  // For play mode
+  wrongPlaceId?: string | null;
+  guessedPlaceIds?: Set<string>;
+
   onPlaceClick?: (feature: Feature) => void;
 }
 
@@ -33,8 +41,12 @@ function PhilippinesMap({
   selectedPlaceId,
   selectedRegion,
   islandGroup,
+  wrongPlaceId,
+  guessedPlaceIds,
   onPlaceClick,
 }: Props) {
+  const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
+
   const getStyle: StyleFunction = (feature) => {
     if (!feature) return LAND_STYLES;
 
@@ -42,21 +54,44 @@ function PhilippinesMap({
 
     if (!metadata) return LAND_STYLES;
 
-    // 1. Selected province
+    // Wrong answer
+    if (metadata.id === wrongPlaceId) {
+      return WRONG_STYLES;
+    }
+
+    // Hover
+    if (metadata.id === hoveredPlaceId) {
+      if (guessedPlaceIds?.has(metadata.id)) {
+        return CORRECT_HOVER_STYLES;
+      }
+
+      if (metadata.id === selectedPlaceId) {
+        return SELECTED_HOVER_STYLES;
+      }
+
+      return HOVER_STYLES;
+    }
+
+    // Correct answers
+    if (guessedPlaceIds?.has(metadata.id)) {
+      return CORRECT_STYLES;
+    }
+
+    // Island filter
+    if (islandGroup) {
+      return metadata.islandGroup === islandGroup
+        ? LAND_STYLES
+        : DISABLED_STYLES;
+    }
+
+    // Selected province
     if (metadata.id === selectedPlaceId) {
       return SELECTED_STYLES;
     }
 
-    // 2. Selected region
+    // Region filter
     if (selectedRegion) {
       return metadata.region === selectedRegion
-        ? HIGHLIGHTED_STYLES
-        : LAND_STYLES;
-    }
-
-    // 3. Selected island group
-    if (islandGroup) {
-      return metadata.islandGroup === islandGroup
         ? HIGHLIGHTED_STYLES
         : LAND_STYLES;
     }
@@ -64,40 +99,62 @@ function PhilippinesMap({
     return LAND_STYLES;
   };
 
-  const eventHandlers = useMemo(
-    () => ({
-      click: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+  const getLayerFeature = (e: L.LeafletMouseEvent) => {
+    const layer = e.propagatedFrom as L.Path & {
+      feature?: Feature;
+    };
 
-        if (!layer.feature) return;
+    return layer.feature;
+  };
 
-        onPlaceClick?.(layer.feature);
-      },
+  const eventHandlers = {
+    click: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
 
-      mouseover: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+      if (!feature) return;
 
-        if (!layer.feature) return;
+      const metadata = getPlaceMetadata(feature.properties);
 
-        layer.setStyle(HOVER_STYLES);
-      },
+      if (!metadata) return;
 
-      mouseout: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+      // Ignore disabled island provinces
+      if (islandGroup && metadata.islandGroup !== islandGroup) {
+        return;
+      }
 
-        if (!layer.feature) return;
+      // Already guessed
+      if (guessedPlaceIds?.has(metadata.id)) {
+        return;
+      }
 
-        layer.setStyle(getStyle(layer.feature));
-      },
-    }),
-    [onPlaceClick, selectedPlaceId],
-  );
+      onPlaceClick?.(feature);
+    },
+
+    mouseover: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
+
+      if (!feature) return;
+
+      const metadata = getPlaceMetadata(feature.properties);
+
+      if (!metadata) return;
+
+      // Ignore disabled island provinces
+      if (islandGroup && metadata.islandGroup !== islandGroup) {
+        return;
+      }
+
+      setHoveredPlaceId(metadata.id);
+    },
+
+    mouseout: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
+
+      if (!feature) return;
+
+      setHoveredPlaceId(null);
+    },
+  };
 
   return (
     <MapContainer
