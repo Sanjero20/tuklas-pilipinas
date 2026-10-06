@@ -9,6 +9,7 @@ import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
 import { formatTime } from "@/utils/time";
+import ProgressBar from "@/components/ui/ProgressBar";
 
 const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
@@ -246,9 +247,7 @@ function PlayPage() {
         <Separator />
 
         <div className="space-y-1">
-          <p className="text-mute text-sm uppercase">
-            Mastery {guessed.size}/{playableProvinces.length}
-          </p>
+          <ProgressBar value={guessed.size} max={playableProvinces.length} />
         </div>
       </aside>
     </main>
