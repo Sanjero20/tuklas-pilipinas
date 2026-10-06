@@ -2,6 +2,7 @@ import Button from "../ui/Button";
 import PhilippinesMap from "../shared/map/PhilippinesMap";
 
 import { translateToBaybayin } from "../../utils/baybayin";
+import { Link } from "wouter";
 
 const tags = ["TUKLAS", "MAPA NG PILIPINAS", "FREE", "NO SIGN-UP"];
 
@@ -46,8 +47,12 @@ function Hero() {
 
         {/* CTA */}
         <div className="flex flex-wrap gap-3">
-          <Button>START TRAINING</Button>
-          <Button variant="secondary">EXPLORE THE MAP</Button>
+          <Link href="/play">
+            <Button>START TRAINING</Button>
+          </Link>
+          <Link href="/explore">
+            <Button variant="secondary">EXPLORE THE MAP</Button>
+          </Link>
         </div>
       </div>
 
