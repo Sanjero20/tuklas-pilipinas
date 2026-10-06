@@ -10,6 +10,7 @@ import type { Feature, FeatureCollection } from "geojson";
 import { PHILIPPINES_CENTER, PHILIPPINES_BOUNDS } from "./config";
 import {
   CORRECT_STYLES,
+  DISABLED_STYLES,
   HIGHLIGHTED_STYLES,
   HOVER_STYLES,
   LAND_STYLES,
@@ -30,7 +31,7 @@ interface Props {
   islandGroup?: IslandGroup;
 
   // For play mode
-  wrongPlaceId?: string;
+  wrongPlaceId?: string | null;
   guessedPlaceIds?: Set<string>;
 
   onPlaceClick?: (feature: Feature) => void;
@@ -51,26 +52,31 @@ function PhilippinesMap({
 
     if (!metadata) return LAND_STYLES;
 
+    // Wrong answer
     if (metadata.id === wrongPlaceId) {
       return WRONG_STYLES;
     }
 
+    // Correct answers
     if (guessedPlaceIds?.has(metadata.id)) {
       return CORRECT_STYLES;
     }
 
+    // Island filter
+    if (islandGroup) {
+      return metadata.islandGroup === islandGroup
+        ? LAND_STYLES
+        : DISABLED_STYLES;
+    }
+
+    // Selected province
     if (metadata.id === selectedPlaceId) {
       return SELECTED_STYLES;
     }
 
+    // Region filter
     if (selectedRegion) {
       return metadata.region === selectedRegion
-        ? HIGHLIGHTED_STYLES
-        : LAND_STYLES;
-    }
-
-    if (islandGroup) {
-      return metadata.islandGroup === islandGroup
         ? HIGHLIGHTED_STYLES
         : LAND_STYLES;
     }
@@ -87,6 +93,15 @@ function PhilippinesMap({
 
         if (!layer.feature) return;
 
+        const metadata = getPlaceMetadata(layer.feature.properties);
+
+        if (!metadata) return;
+
+        // Ignore disabled island provinces
+        if (islandGroup && metadata.islandGroup !== islandGroup) {
+          return;
+        }
+
         onPlaceClick?.(layer.feature);
       },
 
@@ -97,6 +112,15 @@ function PhilippinesMap({
 
         if (!layer.feature) return;
 
+        const metadata = getPlaceMetadata(layer.feature.properties);
+
+        if (!metadata) return;
+
+        // Ignore disabled island provinces
+        if (islandGroup && metadata.islandGroup !== islandGroup) {
+          return;
+        }
+
         layer.setStyle(HOVER_STYLES);
       },
 
@@ -106,6 +130,16 @@ function PhilippinesMap({
         };
 
         if (!layer.feature) return;
+
+        const metadata = getPlaceMetadata(layer.feature.properties);
+
+        if (!metadata) return;
+
+        // Keep disabled province style
+        if (islandGroup && metadata.islandGroup !== islandGroup) {
+          layer.setStyle(DISABLED_STYLES);
+          return;
+        }
 
         layer.setStyle(getStyle(layer.feature));
       },

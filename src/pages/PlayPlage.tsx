@@ -1,34 +1,43 @@
-/* eslint-disable react-hooks/purity */
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { Feature } from "geojson";
+
+import provincesData from "@/data/geojson/provinces.json";
+import type { IslandGroup } from "@/data/philippines/places";
+import { getPlaceMetadata } from "@/utils/place";
 
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
 
-import provinceData from "@/data/geojson/provinces.json";
-import { getPlaceMetadata } from "@/utils/place";
-import type { Feature } from "geojson";
-
-const provinces = provinceData.features
+const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
-  .filter((place) => place != null);
-
-const getRandomProvince = (guessed: Set<string>) => {
-  const available = provinces.filter((province) => !guessed.has(province.id));
-
-  return available[Math.floor(Math.random() * available.length)];
-};
+  .filter((place) => place !== null);
 
 function PlayPage() {
-  const wrongTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [islandGroup, setIslandGroup] = useState<IslandGroup | undefined>();
 
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
-  const [wrongProvinceId, setWrongProvinceId] = useState("");
-
+  const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
   const [hint, setHint] = useState("");
 
-  const [currentProvince, setCurrentProvince] = useState(
-    provinces[Math.floor(Math.random() * provinces.length)],
+  const wrongTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const playableProvinces = useMemo(() => {
+    if (!islandGroup) return provinces;
+
+    return provinces.filter((province) => province.islandGroup === islandGroup);
+  }, [islandGroup]);
+
+  const getRandomProvince = (guessedIds: Set<string>) => {
+    const available = playableProvinces.filter(
+      (province) => !guessedIds.has(province.id),
+    );
+
+    return available[Math.floor(Math.random() * available.length)];
+  };
+
+  const [currentProvince, setCurrentProvince] = useState(() =>
+    getRandomProvince(new Set()),
   );
 
   const handleClick = (feature: Feature) => {
@@ -36,56 +45,75 @@ function PlayPage() {
 
     if (!clickedProvince || !currentProvince) return;
 
-    if (clickedProvince.id === currentProvince.id) {
-      // Correct Guess
-      const nextGuessed = new Set(guessed);
-      nextGuessed.add(currentProvince.id);
-      setGuessed(nextGuessed);
-
-      const nextProvince = getRandomProvince(nextGuessed);
-
-      if (nextProvince) {
-        setCurrentProvince(nextProvince);
-      }
-    } else {
-      // Wrong Guess
+    // Wrong guess
+    if (clickedProvince.id !== currentProvince.id) {
       setWrongProvinceId(clickedProvince.id);
 
-      if (wrongTimeoutRef.current) {
-        clearTimeout(wrongTimeoutRef.current);
+      if (wrongTimeout.current) {
+        clearTimeout(wrongTimeout.current);
       }
 
-      wrongTimeoutRef.current = setTimeout(() => {
-        setWrongProvinceId("");
+      wrongTimeout.current = setTimeout(() => {
+        setWrongProvinceId(null);
       }, 1000);
+
+      return;
     }
+
+    // Correct guess
+    const nextGuessed = new Set(guessed);
+    nextGuessed.add(currentProvince.id);
+
+    setGuessed(nextGuessed);
+    setHint("");
+
+    const nextProvince = getRandomProvince(nextGuessed);
+
+    if (nextProvince) {
+      setCurrentProvince(nextProvince);
+    }
+  };
+
+  const handleIslandChange = (group?: IslandGroup) => {
+    setIslandGroup(group);
+
+    const nextProvinces = group
+      ? provinces.filter((province) => province.islandGroup === group)
+      : provinces;
+
+    const nextProvince =
+      nextProvinces[Math.floor(Math.random() * nextProvinces.length)];
+
+    setGuessed(new Set());
+    setWrongProvinceId(null);
+    setHint("");
+    setCurrentProvince(nextProvince);
   };
 
   return (
     <main className="flex min-h-0 flex-1 flex-col gap-4 pt-8 md:flex-row">
-      {/* Map */}
       <div className="h-[50vh] w-full shrink-0 md:h-auto md:min-w-0 md:flex-1">
         <PhilippinesMap
+          islandGroup={islandGroup}
           onPlaceClick={handleClick}
-          guessedPlaceIds={guessed}
           wrongPlaceId={wrongProvinceId}
+          guessedPlaceIds={guessed}
         />
       </div>
 
       <aside className="w-full shrink-0 space-y-2 md:w-80 lg:w-96">
-        {/* STATS */}
         <div className="grid grid-cols-3">
-          <div className="">
-            <p className="font-serif text-3xl">0</p>
+          <div>
+            <p className="font-serif text-3xl">{guessed.size}</p>
             <p className="text-mute font-mono text-xs font-bold">SCORE</p>
           </div>
 
-          <div className="">
+          <div>
             <p className="font-serif text-3xl">0</p>
             <p className="text-mute font-mono text-xs font-bold">STREAK</p>
           </div>
 
-          <div className="">
+          <div>
             <p className="font-serif text-3xl">00:00</p>
             <p className="text-mute font-mono text-xs font-bold">TIME</p>
           </div>
@@ -95,38 +123,70 @@ function PlayPage() {
 
         <div className="space-y-2">
           <p className="text-mute font-mono text-xs">Where is ...</p>
+
           <p className="text-ink font-serif text-4xl">
-            {currentProvince.name}?
+            {currentProvince?.name}
           </p>
         </div>
 
         <Separator />
+
         <div>
           <p className="text-mute h-8">{hint ? `Hint: its in ${hint}` : ""}</p>
+
           <div className="flex flex-wrap gap-2">
-            <Chip onClick={() => setHint("Luzon")}>HINT</Chip>
+            <Chip onClick={() => setHint(currentProvince?.islandGroup ?? "")}>
+              HINT
+            </Chip>
+
             <Chip onClick={() => {}}>SKIP</Chip>
-            <Chip onClick={() => {}}>RESTART</Chip>
+
+            <Chip onClick={() => handleIslandChange(islandGroup)}>RESTART</Chip>
           </div>
         </div>
 
         <Separator />
 
         <div className="space-y-1">
-          <p className="text-mute text-sm uppercase">Region</p>
+          <p className="text-mute text-sm uppercase">ISLAND</p>
+
           <div className="flex flex-wrap gap-2">
-            <Chip onClick={() => {}}>ALL</Chip>
-            <Chip onClick={() => {}}>LUZON</Chip>
-            <Chip onClick={() => {}}>VISAYAS</Chip>
-            <Chip onClick={() => {}}>MINDANAO</Chip>
+            <Chip
+              onClick={() => handleIslandChange(undefined)}
+              selected={islandGroup == null}
+            >
+              ALL
+            </Chip>
+
+            <Chip
+              onClick={() => handleIslandChange("LUZON")}
+              selected={islandGroup == "LUZON"}
+            >
+              LUZON
+            </Chip>
+
+            <Chip
+              onClick={() => handleIslandChange("VISAYAS")}
+              selected={islandGroup == "VISAYAS"}
+            >
+              VISAYAS
+            </Chip>
+
+            <Chip
+              onClick={() => handleIslandChange("MINDANAO")}
+              selected={islandGroup == "MINDANAO"}
+            >
+              MINDANAO
+            </Chip>
           </div>
         </div>
 
         <Separator />
 
         <div className="space-y-1">
-          <p className="text-mute text-sm uppercase">Mastery 0/No. of items</p>
-          {/* slider component */}
+          <p className="text-mute text-sm uppercase">
+            Mastery {guessed.size}/{playableProvinces.length}
+          </p>
         </div>
       </aside>
     </main>

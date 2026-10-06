@@ -41,3 +41,10 @@ export const WRONG_STYLES: PathOptions = {
   fillColor: "var(--color-bad)",
   fillOpacity: 1,
 };
+
+export const DISABLED_STYLES: PathOptions = {
+  color: "var(--color-sea)",
+  weight: 2,
+  fillColor: "color-mix(in srgb, var(--accent) 30%, var(--land))",
+  fillOpacity: 1,
+};
