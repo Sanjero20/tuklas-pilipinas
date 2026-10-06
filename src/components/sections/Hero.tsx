@@ -1,5 +1,5 @@
 import Button from "../ui/Button";
-import Map from "../ui/MapContainer";
+import PhilippinesMap from "../shared/map/PhilippinesMap";
 
 import { translateToBaybayin } from "../../utils/baybayin";
 
@@ -52,8 +52,8 @@ function Hero() {
       </div>
 
       {/* Right */}
-      <div className="border-ink bg-sea mx-auto aspect-square w-full max-w-md border sm:aspect-3/4 lg:mx-0 lg:h-[min(36rem,calc(100svh_-_14rem))] lg:w-auto lg:max-w-none lg:justify-self-end">
-        <Map />
+      <div className="border-ink bg-sea mx-auto aspect-square w-full max-w-md border sm:aspect-3/4 lg:mx-0 lg:h-[min(36rem,calc(100svh-14rem))] lg:w-auto lg:max-w-none lg:justify-self-end">
+        <PhilippinesMap />
       </div>
     </section>
   );
