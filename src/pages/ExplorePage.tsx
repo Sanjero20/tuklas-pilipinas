@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Feature } from "geojson";
 
-import PhilippinesMap from "../components/ui/map/PhilippinesMap";
+import PhilippinesMap from "../components/shared/map/PhilippinesMap";
 import { getPlaceMetadata } from "@/utils/place";
 import Chip from "@/components/ui/Chip";
 import type { IslandGroup } from "@/data/philippines/places";

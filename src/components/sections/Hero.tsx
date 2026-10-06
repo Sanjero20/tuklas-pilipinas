@@ -1,5 +1,5 @@
 import Button from "../ui/Button";
-import PhilippinesMap from "../ui/map/PhilippinesMap";
+import PhilippinesMap from "../shared/map/PhilippinesMap";
 
 import { translateToBaybayin } from "../../utils/baybayin";
 
