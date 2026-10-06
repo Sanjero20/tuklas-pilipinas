@@ -1,3 +1,4 @@
+import confetti from "canvas-confetti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Feature } from "geojson";
 
@@ -48,7 +49,15 @@ function PlayPage() {
   );
 
   useEffect(() => {
-    if (isComplete) return;
+    if (isComplete) {
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+      });
+
+      return;
+    }
 
     const interval = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
