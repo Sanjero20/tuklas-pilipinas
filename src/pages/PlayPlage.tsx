@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Feature } from "geojson";
 
 import provincesData from "@/data/geojson/provinces.json";
@@ -8,12 +8,16 @@ import { getPlaceMetadata } from "@/utils/place";
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
+import { formatTime } from "@/utils/time";
 
 const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
   .filter((place) => place !== null);
 
 function PlayPage() {
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
   const [islandGroup, setIslandGroup] = useState<IslandGroup>();
   const [hint, setHint] = useState("");
   const [streak, setStreak] = useState(0);
@@ -40,6 +44,16 @@ function PlayPage() {
   const [currentProvince, setCurrentProvince] = useState(() =>
     getRandomProvince(new Set()),
   );
+
+  useEffect(() => {
+    if (isComplete) return;
+
+    const interval = setInterval(() => {
+      setElapsedTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isComplete]);
 
   const clearFeedback = () => {
     if (feedbackTimeout.current) {
@@ -82,6 +96,12 @@ function PlayPage() {
     setStreak((prev) => prev + 1);
     setHint("");
 
+    if (nextGuessed.size === playableProvinces.length) {
+      setIsComplete(true);
+      showFeedback("correct");
+      return;
+    }
+
     showFeedback("correct");
 
     const nextProvince = getRandomProvince(nextGuessed);
@@ -120,6 +140,9 @@ function PlayPage() {
     setHint("");
     setCurrentProvince(nextProvince);
     clearFeedback();
+
+    setElapsedTime(0);
+    setIsComplete(false);
   };
 
   return (
@@ -146,7 +169,7 @@ function PlayPage() {
           </div>
 
           <div>
-            <p className="font-serif text-3xl">00:00</p>
+            <p className="font-serif text-3xl">{formatTime(elapsedTime)}</p>
             <p className="text-mute font-mono text-xs font-bold">TIME</p>
           </div>
         </div>
