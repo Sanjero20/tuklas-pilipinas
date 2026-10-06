@@ -1,44 +1,16 @@
-import type { GeoJsonProperties } from "geojson";
+import { PLACES } from "@/data/philippines/places";
 
-interface ProvinceProperties {
-  ADM0_EN: string;
-  ADM0_PCODE: string;
+export function getPlaceMetadata(properties: GeoJSON.GeoJsonProperties) {
+  if (!properties) return null;
 
-  ADM1ALT1EN: string | null;
-  ADM1_EN: string;
-  ADM1_PCODE: string;
+  const place = PLACES[properties.psgc_code];
 
-  ADM2_EN: string;
-  ADM2_PCODE: string;
-
-  AREA_SQKM: number;
-  Shape_Area: number;
-  Shape_Leng: number;
-
-  date: string;
-  match_confidence: number;
-  match_method: string;
-
-  psgc_code: string;
-  psgc_id: string;
-  psgc_name: string;
-  psgc_status: string;
-  psgc_type: "province" | "region";
-
-  validOn: string;
-  validTo: string | null;
-}
-
-export function getPlaceMetadata(data: GeoJsonProperties) {
-  if (!data) return;
-
-  const metadata = data as ProvinceProperties;
-
-  const properties = {
-    id: metadata.psgc_id,
-    region: metadata.ADM1_EN,
-    province: metadata.ADM2_EN,
+  return {
+    id: properties.psgc_id,
+    name: properties.psgc_name,
+    region: properties.ADM1_EN,
+    regionCode: properties.ADM1_PCODE,
+    area: properties.AREA_SQKM,
+    capital: place?.capital ?? null,
   };
-
-  return properties;
 }
