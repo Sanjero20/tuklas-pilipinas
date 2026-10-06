@@ -6,6 +6,8 @@ import { getPlaceMetadata } from "@/utils/place";
 import Chip from "@/components/ui/Chip";
 import type { IslandGroup } from "@/data/philippines/places";
 import { REGIONS } from "@/data/philippines/regions";
+import Separator from "@/components/ui/Separator";
+import ProvinceSearch from "@/components/shared/ProvinceSearch";
 
 function ExplorePage() {
   const [islandGroup, setIslandGroup] = useState<IslandGroup | "">("");
@@ -48,18 +50,23 @@ function ExplorePage() {
           {selectedPlace?.name ?? "Tap A Province"}
         </p>
 
-        <div className="border-ink flex w-full justify-between border-b py-3">
+        <div className="flex w-full justify-between">
           <p className="text-mute">REGION</p>
           <p className="text-ink font-bold">{selectedPlace?.region ?? "—"}</p>
         </div>
 
-        <div className="border-ink flex w-full justify-between border-b py-3">
+        <Separator />
+
+        <div className="flex w-full justify-between">
           <p className="text-mute">CAPITAL</p>
           <p className="text-ink font-bold">{selectedPlace?.capital ?? "—"}</p>
         </div>
 
+        <Separator />
+
         <p className="text-mute text-sm uppercase">Highlight by Region</p>
 
+        {/* Island Selector */}
         <div className="flex flex-wrap gap-2">
           <Chip
             onClick={() => handleIslandGroupChange("")}
@@ -90,6 +97,7 @@ function ExplorePage() {
           </Chip>
         </div>
 
+        {/* Region Selector */}
         {islandGroup && (
           <div className="flex flex-wrap gap-2 pt-1">
             {REGIONS[islandGroup].map((region) => (
@@ -101,6 +109,18 @@ function ExplorePage() {
                 {region}
               </Chip>
             ))}
+          </div>
+        )}
+
+        <Separator />
+
+        {/* Search Region */}
+        <ProvinceSearch onSelect={setSelectedPlace} />
+
+        {/* Clear */}
+        {selectedPlace && (
+          <div className="border-ink border-t py-2">
+            <Chip onClick={() => setSelectedPlace(null)}>Clear selection</Chip>
           </div>
         )}
       </aside>
