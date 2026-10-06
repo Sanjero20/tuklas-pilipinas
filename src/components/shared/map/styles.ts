@@ -36,7 +36,7 @@ export const CORRECT_STYLES: PathOptions = {
 };
 
 export const CORRECT_HOVER_STYLES: PathOptions = {
-  color: "var(--color-ink)",
+  color: "var(--color-mute)",
   weight: 2,
   fillColor: "color-mix(in srgb, var(--color-ok) 75%, var(--color-land))",
   fillOpacity: 1,
