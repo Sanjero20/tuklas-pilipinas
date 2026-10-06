@@ -9,11 +9,13 @@ import type { Feature, FeatureCollection } from "geojson";
 
 import { PHILIPPINES_CENTER, PHILIPPINES_BOUNDS } from "./config";
 import {
+  CORRECT_HOVER_STYLES,
   CORRECT_STYLES,
   DISABLED_STYLES,
   HIGHLIGHTED_STYLES,
   HOVER_STYLES,
   LAND_STYLES,
+  SELECTED_HOVER_STYLES,
   SELECTED_STYLES,
   WRONG_STYLES,
 } from "./styles";
@@ -102,6 +104,11 @@ function PhilippinesMap({
           return;
         }
 
+        // Already guessed
+        if (guessedPlaceIds?.has(metadata.id)) {
+          return;
+        }
+
         onPlaceClick?.(layer.feature);
       },
 
@@ -118,6 +125,17 @@ function PhilippinesMap({
 
         // Ignore disabled island provinces
         if (islandGroup && metadata.islandGroup !== islandGroup) {
+          return;
+        }
+
+        // Lower shade of green on hovering on guessed province
+        if (guessedPlaceIds?.has(metadata.id)) {
+          layer.setStyle(CORRECT_HOVER_STYLES);
+          return;
+        }
+
+        if (selectedPlaceId == metadata.id) {
+          layer.setStyle(SELECTED_HOVER_STYLES);
           return;
         }
 
@@ -138,6 +156,17 @@ function PhilippinesMap({
         // Keep disabled province style
         if (islandGroup && metadata.islandGroup !== islandGroup) {
           layer.setStyle(DISABLED_STYLES);
+          return;
+        }
+
+        // Revert to original correct styles
+        if (guessedPlaceIds?.has(metadata.id)) {
+          layer.setStyle(CORRECT_STYLES);
+          return;
+        }
+
+        if (selectedPlaceId == metadata.id) {
+          layer.setStyle(SELECTED_STYLES);
           return;
         }
 

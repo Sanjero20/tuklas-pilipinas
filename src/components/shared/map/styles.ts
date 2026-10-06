@@ -15,16 +15,23 @@ export const HOVER_STYLES: PathOptions = {
 };
 
 export const HIGHLIGHTED_STYLES: PathOptions = {
+  color: "var(--color-mute)",
+  weight: 1,
   fillColor: "color-mix(in srgb, var(--accent) 20%, var(--land))",
   fillOpacity: 1,
-  color: "var(--color-ink)",
-  weight: 1,
 };
 
 export const SELECTED_STYLES: PathOptions = {
-  color: "var(--color-accent)",
+  color: "var(--color-mute)",
   weight: 3,
   fillColor: "var(--color-accent)",
+  fillOpacity: 1,
+};
+
+export const SELECTED_HOVER_STYLES: PathOptions = {
+  color: "var(--color-mute)",
+  weight: 3,
+  fillColor: "color-mix(in srgb, var(--color-accent) 75%, var(--color-land))",
   fillOpacity: 1,
 };
 
@@ -32,6 +39,13 @@ export const CORRECT_STYLES: PathOptions = {
   color: "var(--color-mute)",
   weight: 2,
   fillColor: "var(--color-ok)",
+  fillOpacity: 1,
+};
+
+export const CORRECT_HOVER_STYLES: PathOptions = {
+  color: "var(--color-mute)",
+  weight: 2,
+  fillColor: "color-mix(in srgb, var(--color-ok) 75%, var(--color-land))",
   fillOpacity: 1,
 };
 
