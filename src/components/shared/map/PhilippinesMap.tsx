@@ -18,6 +18,7 @@ import {
 import provincesData from "@/data/geojson/provinces.json";
 import { getPlaceMetadata } from "@/utils/place";
 import type { IslandGroup } from "@/data/philippines/places";
+import MapAutoFocus from "./MapAutoFocus";
 
 const provinces = provincesData as FeatureCollection;
 
@@ -110,6 +111,8 @@ function PhilippinesMap({
       attributionControl={false}
       doubleClickZoom={false}
     >
+      <MapAutoFocus selectedPlaceId={selectedPlaceId} />
+
       <GeoJSON
         data={provinces}
         style={getStyle}
