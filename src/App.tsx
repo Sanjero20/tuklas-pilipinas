@@ -5,7 +5,7 @@ import Footer from "./layouts/Footer";
 
 import LandingPage from "./pages/LandingPage";
 import ExplorePage from "./pages/ExplorePage";
-import PlayPage from "./pages/PlayPlage";
+import PlayPage from "./pages/PlayPage";
 
 function App() {
   return (
