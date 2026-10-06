@@ -10,6 +10,7 @@ import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
 import { formatTime } from "@/utils/time";
 import ProgressBar from "@/components/ui/ProgressBar";
+import IslandSelector from "@/components/shared/IslandSelector";
 
 const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
@@ -213,36 +214,7 @@ function PlayPage() {
 
         <Separator />
 
-        <div className="space-y-1">
-          <p className="text-mute text-sm uppercase">ISLAND</p>
-
-          <div className="flex flex-wrap gap-2">
-            <Chip onClick={() => handleIslandChange()} selected={!islandGroup}>
-              ALL
-            </Chip>
-
-            <Chip
-              onClick={() => handleIslandChange("LUZON")}
-              selected={islandGroup === "LUZON"}
-            >
-              LUZON
-            </Chip>
-
-            <Chip
-              onClick={() => handleIslandChange("VISAYAS")}
-              selected={islandGroup === "VISAYAS"}
-            >
-              VISAYAS
-            </Chip>
-
-            <Chip
-              onClick={() => handleIslandChange("MINDANAO")}
-              selected={islandGroup === "MINDANAO"}
-            >
-              MINDANAO
-            </Chip>
-          </div>
-        </div>
+        <IslandSelector value={islandGroup} onChange={handleIslandChange} />
 
         <Separator />
 
