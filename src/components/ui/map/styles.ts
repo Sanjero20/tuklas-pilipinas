@@ -14,6 +14,13 @@ export const HOVER_STYLES: PathOptions = {
   fillOpacity: 1,
 };
 
+export const HIGHLIGHTED_STYLES = {
+  fillColor: "color-mix(in srgb, var(--accent) 20%, var(--land))",
+  fillOpacity: 1,
+  color: "var(--color-ink)",
+  weight: 1,
+};
+
 export const SELECTED_STYLES: PathOptions = {
   color: "var(--color-accent)",
   weight: 3,
