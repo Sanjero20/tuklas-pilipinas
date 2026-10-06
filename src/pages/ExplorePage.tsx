@@ -8,9 +8,10 @@ import type { IslandGroup } from "@/data/philippines/places";
 import { REGIONS } from "@/data/philippines/regions";
 import Separator from "@/components/ui/Separator";
 import ProvinceSearch from "@/components/shared/ProvinceSearch";
+import IslandSelector from "@/components/shared/IslandSelector";
 
 function ExplorePage() {
-  const [islandGroup, setIslandGroup] = useState<IslandGroup | "">("");
+  const [islandGroup, setIslandGroup] = useState<IslandGroup>();
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<ReturnType<
     typeof getPlaceMetadata
@@ -21,13 +22,15 @@ function ExplorePage() {
     setSelectedPlace(metadata);
   };
 
-  const handleIslandGroupChange = (group: IslandGroup | "") => {
+  const handleIslandGroupChange = (group?: IslandGroup) => {
     setIslandGroup(group);
     setSelectedRegion("");
+    setSelectedPlace(null);
   };
 
   const handleRegionChange = (region: string) => {
     setSelectedRegion((current) => (current === region ? "" : region));
+    setSelectedPlace(null);
   };
 
   return (
@@ -64,38 +67,10 @@ function ExplorePage() {
 
         <Separator />
 
-        <p className="text-mute text-sm uppercase">Highlight by Region</p>
-
-        {/* Island Selector */}
-        <div className="flex flex-wrap gap-2">
-          <Chip
-            onClick={() => handleIslandGroupChange("")}
-            selected={islandGroup === ""}
-          >
-            ALL
-          </Chip>
-
-          <Chip
-            onClick={() => handleIslandGroupChange("LUZON")}
-            selected={islandGroup === "LUZON"}
-          >
-            LUZON
-          </Chip>
-
-          <Chip
-            onClick={() => handleIslandGroupChange("VISAYAS")}
-            selected={islandGroup === "VISAYAS"}
-          >
-            VISAYAS
-          </Chip>
-
-          <Chip
-            onClick={() => handleIslandGroupChange("MINDANAO")}
-            selected={islandGroup === "MINDANAO"}
-          >
-            MINDANAO
-          </Chip>
-        </div>
+        <IslandSelector
+          value={islandGroup}
+          onChange={handleIslandGroupChange}
+        />
 
         {/* Region Selector */}
         {islandGroup && (

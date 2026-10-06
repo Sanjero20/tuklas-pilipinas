@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { GeoJSON, MapContainer } from "react-leaflet";
 
 import type { StyleFunction } from "leaflet";
@@ -10,7 +10,6 @@ import {
   CORRECT_HOVER_STYLES,
   CORRECT_STYLES,
   DISABLED_STYLES,
-  HIGHLIGHTED_STYLES,
   HOVER_STYLES,
   LAND_STYLES,
   SELECTED_HOVER_STYLES,
@@ -47,56 +46,76 @@ function PhilippinesMap({
 }: Props) {
   const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
 
-  const getStyle: StyleFunction = (feature) => {
-    if (!feature) return LAND_STYLES;
+  const getStyle = useCallback<StyleFunction>(
+    (feature) => {
+      if (!feature) return LAND_STYLES;
 
-    const metadata = getPlaceMetadata(feature.properties);
+      const metadata = getPlaceMetadata(feature.properties);
 
-    if (!metadata) return LAND_STYLES;
+      if (!metadata) return LAND_STYLES;
 
-    // Wrong answer
-    if (metadata.id === wrongPlaceId) {
-      return WRONG_STYLES;
-    }
+      // Wrong answer
+      if (metadata.id === wrongPlaceId) {
+        return WRONG_STYLES;
+      }
 
-    // Hover
-    if (metadata.id === hoveredPlaceId) {
+      // Correct answer
       if (guessedPlaceIds?.has(metadata.id)) {
-        return CORRECT_HOVER_STYLES;
+        return metadata.id === hoveredPlaceId
+          ? CORRECT_HOVER_STYLES
+          : CORRECT_STYLES;
       }
 
+      // Selected province
       if (metadata.id === selectedPlaceId) {
-        return SELECTED_HOVER_STYLES;
+        return metadata.id === hoveredPlaceId
+          ? SELECTED_HOVER_STYLES
+          : SELECTED_STYLES;
       }
 
-      return HOVER_STYLES;
+      // Region filter
+      if (selectedRegion) {
+        if (metadata.region !== selectedRegion) {
+          return DISABLED_STYLES;
+        }
+
+        return metadata.id === hoveredPlaceId ? HOVER_STYLES : LAND_STYLES;
+      }
+
+      // Island group filter
+      if (islandGroup) {
+        if (metadata.islandGroup !== islandGroup) {
+          return DISABLED_STYLES;
+        }
+
+        return metadata.id === hoveredPlaceId ? HOVER_STYLES : LAND_STYLES;
+      }
+
+      // Normal
+      return metadata.id === hoveredPlaceId ? HOVER_STYLES : LAND_STYLES;
+    },
+    [
+      hoveredPlaceId,
+      wrongPlaceId,
+      guessedPlaceIds,
+      selectedPlaceId,
+      selectedRegion,
+      islandGroup,
+    ],
+  );
+
+  const isPlaceDisabled = (metadata: ReturnType<typeof getPlaceMetadata>) => {
+    if (!metadata) return true;
+
+    if (selectedRegion && metadata.region !== selectedRegion) {
+      return true;
     }
 
-    // Correct answers
-    if (guessedPlaceIds?.has(metadata.id)) {
-      return CORRECT_STYLES;
+    if (islandGroup && metadata.islandGroup !== islandGroup) {
+      return true;
     }
 
-    // Island filter
-    if (islandGroup) {
-      return metadata.islandGroup === islandGroup
-        ? LAND_STYLES
-        : DISABLED_STYLES;
-    }
-
-    // Selected province
-    if (metadata.id === selectedPlaceId) {
-      return SELECTED_STYLES;
-    }
-
-    // Region filter
-    if (selectedRegion) {
-      return metadata.region === selectedRegion
-        ? HIGHLIGHTED_STYLES
-        : LAND_STYLES;
-    }
-
-    return LAND_STYLES;
+    return false;
   };
 
   const getLayerFeature = (e: L.LeafletMouseEvent) => {
@@ -110,48 +129,29 @@ function PhilippinesMap({
   const eventHandlers = {
     click: (e: L.LeafletMouseEvent) => {
       const feature = getLayerFeature(e);
-
       if (!feature) return;
 
       const metadata = getPlaceMetadata(feature.properties);
 
       if (!metadata) return;
+      if (isPlaceDisabled(metadata)) return;
 
-      // Ignore disabled island provinces
-      if (islandGroup && metadata.islandGroup !== islandGroup) {
-        return;
-      }
-
-      // Already guessed
-      if (guessedPlaceIds?.has(metadata.id)) {
-        return;
-      }
+      if (guessedPlaceIds?.has(metadata.id)) return;
 
       onPlaceClick?.(feature);
     },
 
     mouseover: (e: L.LeafletMouseEvent) => {
       const feature = getLayerFeature(e);
-
       if (!feature) return;
 
       const metadata = getPlaceMetadata(feature.properties);
+      if (isPlaceDisabled(metadata)) return;
 
-      if (!metadata) return;
-
-      // Ignore disabled island provinces
-      if (islandGroup && metadata.islandGroup !== islandGroup) {
-        return;
-      }
-
-      setHoveredPlaceId(metadata.id);
+      setHoveredPlaceId(metadata?.id ?? null);
     },
 
-    mouseout: (e: L.LeafletMouseEvent) => {
-      const feature = getLayerFeature(e);
-
-      if (!feature) return;
-
+    mouseout: () => {
       setHoveredPlaceId(null);
     },
   };
