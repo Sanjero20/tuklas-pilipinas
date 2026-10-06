@@ -78,6 +78,20 @@ function PlayPage() {
     }
   };
 
+  const handleSkip = () => {
+    if (!currentProvince) return;
+
+    const nextProvince = getRandomProvince(guessed);
+
+    if (nextProvince) {
+      setCurrentProvince(nextProvince);
+    }
+
+    setStreak(0);
+    setHint("");
+    setWrongProvinceId(null);
+  };
+
   const handleIslandChange = (group?: IslandGroup) => {
     setIslandGroup(group);
 
@@ -144,7 +158,7 @@ function PlayPage() {
               HINT
             </Chip>
 
-            <Chip onClick={() => {}}>SKIP</Chip>
+            <Chip onClick={handleSkip}>SKIP</Chip>
 
             <Chip onClick={() => handleIslandChange(islandGroup)}>RESTART</Chip>
           </div>
