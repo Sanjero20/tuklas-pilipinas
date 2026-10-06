@@ -14,15 +14,13 @@ const provinces = provincesData.features
   .filter((place) => place !== null);
 
 function PlayPage() {
-  const [islandGroup, setIslandGroup] = useState<IslandGroup | undefined>();
-
+  const [islandGroup, setIslandGroup] = useState<IslandGroup>();
   const [hint, setHint] = useState("");
   const [streak, setStreak] = useState(0);
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
   const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
 
-  const wrongTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const playableProvinces = useMemo(() => {
@@ -43,57 +41,48 @@ function PlayPage() {
     getRandomProvince(new Set()),
   );
 
+  const clearFeedback = () => {
+    if (feedbackTimeout.current) {
+      clearTimeout(feedbackTimeout.current);
+    }
+
+    feedbackTimeout.current = null;
+    setFeedback(null);
+    setWrongProvinceId(null);
+  };
+
+  const showFeedback = (type: "correct" | "wrong", provinceId?: string) => {
+    if (feedbackTimeout.current) {
+      clearTimeout(feedbackTimeout.current);
+    }
+
+    setFeedback(type);
+    setWrongProvinceId(provinceId ?? null);
+
+    feedbackTimeout.current = setTimeout(() => {
+      clearFeedback();
+    }, 1000);
+  };
+
   const handleClick = (feature: Feature) => {
     const clickedProvince = getPlaceMetadata(feature.properties);
 
     if (!clickedProvince || !currentProvince) return;
 
-    // Wrong guess
     if (clickedProvince.id !== currentProvince.id) {
-      setFeedback("wrong");
-
-      if (feedbackTimeout.current) {
-        clearTimeout(feedbackTimeout.current);
-      }
-
-      feedbackTimeout.current = setTimeout(() => {
-        setFeedback(null);
-        setWrongProvinceId(null);
-      }, 1000);
-
-      setWrongProvinceId(clickedProvince.id);
+      showFeedback("wrong", clickedProvince.id);
       setStreak(0);
-
-      if (wrongTimeout.current) {
-        clearTimeout(wrongTimeout.current);
-      }
-
-      wrongTimeout.current = setTimeout(() => {
-        setWrongProvinceId(null);
-        setFeedback(null);
-      }, 1000);
-
       return;
     }
-
-    // Correct guess
 
     const nextGuessed = new Set(guessed);
     nextGuessed.add(currentProvince.id);
 
-    setFeedback("correct");
-
-    if (feedbackTimeout.current) {
-      clearTimeout(feedbackTimeout.current);
-    }
-
-    feedbackTimeout.current = setTimeout(() => {
-      setFeedback(null);
-    }, 1000);
-
     setGuessed(nextGuessed);
     setStreak((prev) => prev + 1);
     setHint("");
+
+    showFeedback("correct");
 
     const nextProvince = getRandomProvince(nextGuessed);
 
@@ -113,8 +102,7 @@ function PlayPage() {
 
     setStreak(0);
     setHint("");
-    setFeedback(null);
-    setWrongProvinceId(null);
+    clearFeedback();
   };
 
   const handleIslandChange = (group?: IslandGroup) => {
@@ -128,10 +116,10 @@ function PlayPage() {
       nextProvinces[Math.floor(Math.random() * nextProvinces.length)];
 
     setGuessed(new Set());
-    setWrongProvinceId(null);
     setStreak(0);
     setHint("");
     setCurrentProvince(nextProvince);
+    clearFeedback();
   };
 
   return (
@@ -205,30 +193,27 @@ function PlayPage() {
           <p className="text-mute text-sm uppercase">ISLAND</p>
 
           <div className="flex flex-wrap gap-2">
-            <Chip
-              onClick={() => handleIslandChange(undefined)}
-              selected={islandGroup == null}
-            >
+            <Chip onClick={() => handleIslandChange()} selected={!islandGroup}>
               ALL
             </Chip>
 
             <Chip
               onClick={() => handleIslandChange("LUZON")}
-              selected={islandGroup == "LUZON"}
+              selected={islandGroup === "LUZON"}
             >
               LUZON
             </Chip>
 
             <Chip
               onClick={() => handleIslandChange("VISAYAS")}
-              selected={islandGroup == "VISAYAS"}
+              selected={islandGroup === "VISAYAS"}
             >
               VISAYAS
             </Chip>
 
             <Chip
               onClick={() => handleIslandChange("MINDANAO")}
-              selected={islandGroup == "MINDANAO"}
+              selected={islandGroup === "MINDANAO"}
             >
               MINDANAO
             </Chip>
