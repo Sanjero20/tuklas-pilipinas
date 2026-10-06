@@ -8,7 +8,7 @@ export const LAND_STYLES: PathOptions = {
 };
 
 export const HOVER_STYLES: PathOptions = {
-  color: "var(--color-ink)",
+  color: "var(--color-mute)",
   weight: 2,
   fillColor: "color-mix(in srgb, var(--accent) 45%, var(--land))",
   fillOpacity: 1,
@@ -22,7 +22,7 @@ export const SELECTED_STYLES: PathOptions = {
 };
 
 export const SELECTED_HOVER_STYLES: PathOptions = {
-  color: "var(--color-ink)",
+  color: "var(--color-mute)",
   weight: 2,
   fillColor: "color-mix(in srgb, var(--color-accent) 75%, var(--color-land))",
   fillOpacity: 1,
