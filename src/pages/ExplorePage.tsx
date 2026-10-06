@@ -17,9 +17,6 @@ function ExplorePage() {
   const handleClick = (feature: Feature) => {
     const metadata = getPlaceMetadata(feature.properties);
     setSelectedPlace(metadata);
-    setSelectedRegion("");
-
-    console.log(feature.properties);
   };
 
   const handleIslandGroupChange = (group: IslandGroup | "") => {

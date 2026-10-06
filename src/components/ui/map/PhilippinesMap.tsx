@@ -35,30 +35,29 @@ function PhilippinesMap({
   onPlaceClick,
 }: Props) {
   const getStyle: StyleFunction = (feature) => {
-    if (!feature) {
-      return LAND_STYLES;
-    }
+    if (!feature) return LAND_STYLES;
 
     const metadata = getPlaceMetadata(feature.properties);
 
-    if (!metadata) {
-      return LAND_STYLES;
-    }
+    if (!metadata) return LAND_STYLES;
 
+    // 1. Selected province
     if (metadata.id === selectedPlaceId) {
       return SELECTED_STYLES;
     }
 
-    if (!islandGroup && !selectedRegion) {
-      return LAND_STYLES;
+    // 2. Selected region
+    if (selectedRegion) {
+      return metadata.region === selectedRegion
+        ? HIGHLIGHTED_STYLES
+        : LAND_STYLES;
     }
 
-    const matchesIsland = !islandGroup || metadata.islandGroup === islandGroup;
-
-    const matchesRegion = !selectedRegion || metadata.region === selectedRegion;
-
-    if (matchesIsland && matchesRegion) {
-      return HIGHLIGHTED_STYLES;
+    // 3. Selected island group
+    if (islandGroup) {
+      return metadata.islandGroup === islandGroup
+        ? HIGHLIGHTED_STYLES
+        : LAND_STYLES;
     }
 
     return LAND_STYLES;
