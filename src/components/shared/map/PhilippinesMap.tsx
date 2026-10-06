@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import L from "leaflet";
-
-import { useMemo } from "react";
+import { useState } from "react";
 import { GeoJSON, MapContainer } from "react-leaflet";
 
 import type { StyleFunction } from "leaflet";
@@ -47,6 +45,8 @@ function PhilippinesMap({
   guessedPlaceIds,
   onPlaceClick,
 }: Props) {
+  const [hoveredPlaceId, setHoveredPlaceId] = useState<string | null>(null);
+
   const getStyle: StyleFunction = (feature) => {
     if (!feature) return LAND_STYLES;
 
@@ -57,6 +57,19 @@ function PhilippinesMap({
     // Wrong answer
     if (metadata.id === wrongPlaceId) {
       return WRONG_STYLES;
+    }
+
+    // Hover
+    if (metadata.id === hoveredPlaceId) {
+      if (guessedPlaceIds?.has(metadata.id)) {
+        return CORRECT_HOVER_STYLES;
+      }
+
+      if (metadata.id === selectedPlaceId) {
+        return SELECTED_HOVER_STYLES;
+      }
+
+      return HOVER_STYLES;
     }
 
     // Correct answers
@@ -86,95 +99,62 @@ function PhilippinesMap({
     return LAND_STYLES;
   };
 
-  const eventHandlers = useMemo(
-    () => ({
-      click: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+  const getLayerFeature = (e: L.LeafletMouseEvent) => {
+    const layer = e.propagatedFrom as L.Path & {
+      feature?: Feature;
+    };
 
-        if (!layer.feature) return;
+    return layer.feature;
+  };
 
-        const metadata = getPlaceMetadata(layer.feature.properties);
+  const eventHandlers = {
+    click: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
 
-        if (!metadata) return;
+      if (!feature) return;
 
-        // Ignore disabled island provinces
-        if (islandGroup && metadata.islandGroup !== islandGroup) {
-          return;
-        }
+      const metadata = getPlaceMetadata(feature.properties);
 
-        // Already guessed
-        if (guessedPlaceIds?.has(metadata.id)) {
-          return;
-        }
+      if (!metadata) return;
 
-        onPlaceClick?.(layer.feature);
-      },
+      // Ignore disabled island provinces
+      if (islandGroup && metadata.islandGroup !== islandGroup) {
+        return;
+      }
 
-      mouseover: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+      // Already guessed
+      if (guessedPlaceIds?.has(metadata.id)) {
+        return;
+      }
 
-        if (!layer.feature) return;
+      onPlaceClick?.(feature);
+    },
 
-        const metadata = getPlaceMetadata(layer.feature.properties);
+    mouseover: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
 
-        if (!metadata) return;
+      if (!feature) return;
 
-        // Ignore disabled island provinces
-        if (islandGroup && metadata.islandGroup !== islandGroup) {
-          return;
-        }
+      const metadata = getPlaceMetadata(feature.properties);
 
-        // Lower shade of green on hovering on guessed province
-        if (guessedPlaceIds?.has(metadata.id)) {
-          layer.setStyle(CORRECT_HOVER_STYLES);
-          return;
-        }
+      if (!metadata) return;
 
-        if (selectedPlaceId == metadata.id) {
-          layer.setStyle(SELECTED_HOVER_STYLES);
-          return;
-        }
+      // Ignore disabled island provinces
+      if (islandGroup && metadata.islandGroup !== islandGroup) {
+        return;
+      }
 
-        layer.setStyle(HOVER_STYLES);
-      },
+      setHoveredPlaceId(metadata.id);
+    },
 
-      mouseout: (e: L.LeafletMouseEvent) => {
-        const layer = e.propagatedFrom as L.Path & {
-          feature?: Feature;
-        };
+    mouseout: (e: L.LeafletMouseEvent) => {
+      const feature = getLayerFeature(e);
 
-        if (!layer.feature) return;
+      if (!feature) return;
 
-        const metadata = getPlaceMetadata(layer.feature.properties);
-
-        if (!metadata) return;
-
-        // Keep disabled province style
-        if (islandGroup && metadata.islandGroup !== islandGroup) {
-          layer.setStyle(DISABLED_STYLES);
-          return;
-        }
-
-        // Revert to original correct styles
-        if (guessedPlaceIds?.has(metadata.id)) {
-          layer.setStyle(CORRECT_STYLES);
-          return;
-        }
-
-        if (selectedPlaceId == metadata.id) {
-          layer.setStyle(SELECTED_STYLES);
-          return;
-        }
-
-        layer.setStyle(getStyle(layer.feature));
-      },
-    }),
-    [onPlaceClick, selectedPlaceId],
-  );
+      setHoveredPlaceId(null);
+    },
+  };
 
   return (
     <MapContainer
