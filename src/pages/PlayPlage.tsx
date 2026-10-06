@@ -16,6 +16,7 @@ const provinces = provincesData.features
 function PlayPage() {
   const [islandGroup, setIslandGroup] = useState<IslandGroup | undefined>();
 
+  const [streak, setStreak] = useState(0);
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
   const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
   const [hint, setHint] = useState("");
@@ -48,6 +49,7 @@ function PlayPage() {
     // Wrong guess
     if (clickedProvince.id !== currentProvince.id) {
       setWrongProvinceId(clickedProvince.id);
+      setStreak(0);
 
       if (wrongTimeout.current) {
         clearTimeout(wrongTimeout.current);
@@ -61,10 +63,12 @@ function PlayPage() {
     }
 
     // Correct guess
+
     const nextGuessed = new Set(guessed);
     nextGuessed.add(currentProvince.id);
 
     setGuessed(nextGuessed);
+    setStreak((prev) => prev + 1);
     setHint("");
 
     const nextProvince = getRandomProvince(nextGuessed);
@@ -109,7 +113,7 @@ function PlayPage() {
           </div>
 
           <div>
-            <p className="font-serif text-3xl">0</p>
+            <p className="font-serif text-3xl">{streak}</p>
             <p className="text-mute font-mono text-xs font-bold">STREAK</p>
           </div>
 
