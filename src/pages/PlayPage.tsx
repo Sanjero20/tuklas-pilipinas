@@ -12,14 +12,15 @@ import Separator from "@/components/ui/Separator";
 import { formatTime } from "@/utils/time";
 import ProgressBar from "@/components/ui/ProgressBar";
 import IslandSelector from "@/components/shared/IslandSelector";
+import { useGameTimer } from "@/hooks/useGameTimer";
 
 const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
   .filter((place) => place !== null);
 
 function PlayPage() {
-  const [elapsedTime, setElapsedTime] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const { elapsedTime, resetTimer } = useGameTimer(isComplete);
 
   const [islandGroup, setIslandGroup] = useState<IslandGroup>();
   const [hint, setHint] = useState("");
@@ -49,21 +50,12 @@ function PlayPage() {
   );
 
   useEffect(() => {
-    if (isComplete) {
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 },
-      });
-
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
+    if (!isComplete) return;
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      origin: { y: 0.6 },
+    });
   }, [isComplete]);
 
   const clearFeedback = () => {
@@ -152,8 +144,9 @@ function PlayPage() {
     setCurrentProvince(nextProvince);
     clearFeedback();
 
-    setElapsedTime(0);
     setIsComplete(false);
+
+    resetTimer();
   };
 
   return (
