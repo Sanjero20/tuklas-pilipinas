@@ -1,5 +1,7 @@
 import confetti from "canvas-confetti";
-import { useEffect, useState } from "react";
+
+import { useSearchParams } from "wouter";
+import { useEffect } from "react";
 import type { IslandGroup } from "@/data/philippines/places";
 
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
@@ -19,7 +21,10 @@ import { NameQuestion } from "@/components/play/NameQuestion";
 type GameMode = "locate" | "name";
 
 function PlayPage() {
-  const [gameMode, setGameMode] = useState<GameMode>("locate");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const gameMode: GameMode =
+    searchParams.get("mode") === "name" ? "name" : "locate";
 
   const { feedback, wrongProvinceId, showFeedback, clearFeedback } =
     useGameFeedback();
@@ -52,7 +57,7 @@ function PlayPage() {
   const handleModeChange = (mode: GameMode) => {
     if (mode === gameMode) return;
 
-    setGameMode(mode);
+    setSearchParams({ mode });
 
     locateGame.resetGame();
     nameGame.resetGame();
