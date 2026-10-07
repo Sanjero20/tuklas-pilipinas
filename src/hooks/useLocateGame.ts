@@ -17,7 +17,6 @@ type Props = {
 
 export function useLocateGame({ showFeedback, clearFeedback }: Props) {
   const [islandGroup, setIslandGroup] = useState<IslandGroup>();
-  const [hint, setHint] = useState("");
   const [streak, setStreak] = useState(0);
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
   const [isComplete, setIsComplete] = useState(false);
@@ -48,7 +47,6 @@ export function useLocateGame({ showFeedback, clearFeedback }: Props) {
 
     setGuessed(nextGuessed);
     setStreak((prev) => prev + 1);
-    setHint("");
 
     if (nextGuessed.size === playableProvinces.length) {
       setIsComplete(true);
@@ -75,7 +73,6 @@ export function useLocateGame({ showFeedback, clearFeedback }: Props) {
     }
 
     setStreak(0);
-    setHint("");
     clearFeedback();
   };
 
@@ -89,9 +86,20 @@ export function useLocateGame({ showFeedback, clearFeedback }: Props) {
     setIslandGroup(group);
     setGuessed(new Set());
     setStreak(0);
-    setHint("");
     setCurrentProvince(nextProvince);
     setIsComplete(false);
+  };
+
+  const resetGame = () => {
+    const nextProvince = getRandomProvince(provinces, new Set());
+
+    setIslandGroup(undefined);
+    setGuessed(new Set());
+    setStreak(0);
+    setCurrentProvince(nextProvince);
+    setIsComplete(false);
+
+    clearFeedback();
   };
 
   return {
@@ -100,12 +108,12 @@ export function useLocateGame({ showFeedback, clearFeedback }: Props) {
     playableProvinces,
     guessed,
     streak,
-    hint,
     isComplete,
 
-    setHint,
     handleClick,
     handleSkip,
     handleIslandChange,
+
+    resetGame,
   };
 }

@@ -26,6 +26,7 @@ const provinces = provincesData as FeatureCollection;
 
 interface Props {
   selectedPlaceId?: string;
+  highlightedPlaceId?: string;
   selectedRegion?: string;
   islandGroup?: IslandGroup;
 
@@ -38,6 +39,7 @@ interface Props {
 
 function PhilippinesMap({
   selectedPlaceId,
+  highlightedPlaceId,
   selectedRegion,
   islandGroup,
   wrongPlaceId,
@@ -66,7 +68,14 @@ function PhilippinesMap({
           : CORRECT_STYLES;
       }
 
-      // Selected province
+      // Highlighted province (Name It)
+      if (metadata.id === highlightedPlaceId) {
+        return metadata.id === hoveredPlaceId
+          ? SELECTED_HOVER_STYLES
+          : SELECTED_STYLES;
+      }
+
+      // Selected province (Explore)
       if (metadata.id === selectedPlaceId) {
         return metadata.id === hoveredPlaceId
           ? SELECTED_HOVER_STYLES
@@ -98,6 +107,7 @@ function PhilippinesMap({
       hoveredPlaceId,
       wrongPlaceId,
       guessedPlaceIds,
+      highlightedPlaceId,
       selectedPlaceId,
       selectedRegion,
       islandGroup,
@@ -168,7 +178,7 @@ function PhilippinesMap({
       attributionControl={false}
       doubleClickZoom={false}
     >
-      <MapAutoFocus selectedPlaceId={selectedPlaceId} />
+      <MapAutoFocus selectedPlaceId={selectedPlaceId ?? highlightedPlaceId} />
 
       <GeoJSON
         data={provinces}
