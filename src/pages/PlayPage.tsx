@@ -1,5 +1,5 @@
 import confetti from "canvas-confetti";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Feature } from "geojson";
 
 import provincesData from "@/data/geojson/provinces.json";
@@ -9,27 +9,26 @@ import { getPlaceMetadata } from "@/utils/place";
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
-import { formatTime } from "@/utils/time";
 import ProgressBar from "@/components/ui/ProgressBar";
 import IslandSelector from "@/components/shared/IslandSelector";
 import { useGameTimer } from "@/hooks/useGameTimer";
+import useGameFeedback from "@/hooks/useGameFeedback";
+import GameStatus from "@/components/play/GameStatus";
 
 const provinces = provincesData.features
   .map((feature) => getPlaceMetadata(feature.properties))
   .filter((place) => place !== null);
 
 function PlayPage() {
-  const [isComplete, setIsComplete] = useState(false);
-  const { elapsedTime, resetTimer } = useGameTimer(isComplete);
-
   const [islandGroup, setIslandGroup] = useState<IslandGroup>();
   const [hint, setHint] = useState("");
   const [streak, setStreak] = useState(0);
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
-  const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
 
-  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
+  const { elapsedTime, resetTimer } = useGameTimer(isComplete);
+  const { feedback, wrongProvinceId, showFeedback, clearFeedback } =
+    useGameFeedback();
 
   const playableProvinces = useMemo(() => {
     if (!islandGroup) return provinces;
@@ -57,29 +56,6 @@ function PlayPage() {
       origin: { y: 0.6 },
     });
   }, [isComplete]);
-
-  const clearFeedback = () => {
-    if (feedbackTimeout.current) {
-      clearTimeout(feedbackTimeout.current);
-    }
-
-    feedbackTimeout.current = null;
-    setFeedback(null);
-    setWrongProvinceId(null);
-  };
-
-  const showFeedback = (type: "correct" | "wrong", provinceId?: string) => {
-    if (feedbackTimeout.current) {
-      clearTimeout(feedbackTimeout.current);
-    }
-
-    setFeedback(type);
-    setWrongProvinceId(provinceId ?? null);
-
-    feedbackTimeout.current = setTimeout(() => {
-      clearFeedback();
-    }, 1000);
-  };
 
   const handleClick = (feature: Feature) => {
     const clickedProvince = getPlaceMetadata(feature.properties);
@@ -161,22 +137,7 @@ function PlayPage() {
       </div>
 
       <aside className="w-full shrink-0 space-y-2 md:w-80 lg:w-96">
-        <div className="grid grid-cols-3">
-          <div>
-            <p className="font-serif text-3xl">{guessed.size}</p>
-            <p className="text-mute font-mono text-xs font-bold">SCORE</p>
-          </div>
-
-          <div>
-            <p className="font-serif text-3xl">{streak}</p>
-            <p className="text-mute font-mono text-xs font-bold">STREAK</p>
-          </div>
-
-          <div>
-            <p className="font-serif text-3xl">{formatTime(elapsedTime)}</p>
-            <p className="text-mute font-mono text-xs font-bold">TIME</p>
-          </div>
-        </div>
+        <GameStatus score={guessed.size} streak={streak} time={elapsedTime} />
 
         <Separator />
 
