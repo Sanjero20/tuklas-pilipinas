@@ -1,236 +1,166 @@
 import confetti from "canvas-confetti";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Feature } from "geojson";
 
-import provincesData from "@/data/geojson/provinces.json";
+import { useSearchParams } from "wouter";
+import { useEffect } from "react";
 import type { IslandGroup } from "@/data/philippines/places";
-import { getPlaceMetadata } from "@/utils/place";
 
 import PhilippinesMap from "@/components/shared/map/PhilippinesMap";
 import Chip from "@/components/ui/Chip";
 import Separator from "@/components/ui/Separator";
-import { formatTime } from "@/utils/time";
 import ProgressBar from "@/components/ui/ProgressBar";
 import IslandSelector from "@/components/shared/IslandSelector";
+import GameStatus from "@/components/play/GameStatus";
 
-const provinces = provincesData.features
-  .map((feature) => getPlaceMetadata(feature.properties))
-  .filter((place) => place !== null);
+import { useGameTimer } from "@/hooks/useGameTimer";
+import { useGameFeedback } from "@/hooks/useGameFeedback";
+import { useLocateGame } from "@/hooks/useLocateGame";
+import { useNameGame } from "@/hooks/useNameGame";
+import { LocateQuestion } from "@/components/play/LocateQuestion";
+import { NameQuestion } from "@/components/play/NameQuestion";
+
+type GameMode = "locate" | "name";
 
 function PlayPage() {
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [islandGroup, setIslandGroup] = useState<IslandGroup>();
-  const [hint, setHint] = useState("");
-  const [streak, setStreak] = useState(0);
-  const [guessed, setGuessed] = useState<Set<string>>(new Set());
-  const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
+  const gameMode: GameMode =
+    searchParams.get("mode") === "name" ? "name" : "locate";
 
-  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { feedback, wrongProvinceId, showFeedback, clearFeedback } =
+    useGameFeedback();
 
-  const playableProvinces = useMemo(() => {
-    if (!islandGroup) return provinces;
+  const locateGame = useLocateGame({
+    showFeedback,
+    clearFeedback,
+  });
 
-    return provinces.filter((province) => province.islandGroup === islandGroup);
-  }, [islandGroup]);
+  const nameGame = useNameGame({
+    showFeedback,
+    clearFeedback,
+  });
 
-  const getRandomProvince = (guessedIds: Set<string>) => {
-    const available = playableProvinces.filter(
-      (province) => !guessedIds.has(province.id),
-    );
+  const activeGame = gameMode === "locate" ? locateGame : nameGame;
 
-    return available[Math.floor(Math.random() * available.length)];
-  };
+  const {
+    islandGroup,
+    currentProvince,
+    playableProvinces,
+    guessed,
+    streak,
+    isComplete,
+    handleSkip,
+    handleIslandChange: changeIsland,
+  } = activeGame;
 
-  const [currentProvince, setCurrentProvince] = useState(() =>
-    getRandomProvince(new Set()),
-  );
+  const { elapsedTime, resetTimer } = useGameTimer(isComplete);
 
-  useEffect(() => {
-    if (isComplete) {
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 },
-      });
+  const handleModeChange = (mode: GameMode) => {
+    if (mode === gameMode) return;
 
-      return;
-    }
+    setSearchParams({ mode });
 
-    const interval = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
+    locateGame.resetGame();
+    nameGame.resetGame();
 
-    return () => clearInterval(interval);
-  }, [isComplete]);
-
-  const clearFeedback = () => {
-    if (feedbackTimeout.current) {
-      clearTimeout(feedbackTimeout.current);
-    }
-
-    feedbackTimeout.current = null;
-    setFeedback(null);
-    setWrongProvinceId(null);
-  };
-
-  const showFeedback = (type: "correct" | "wrong", provinceId?: string) => {
-    if (feedbackTimeout.current) {
-      clearTimeout(feedbackTimeout.current);
-    }
-
-    setFeedback(type);
-    setWrongProvinceId(provinceId ?? null);
-
-    feedbackTimeout.current = setTimeout(() => {
-      clearFeedback();
-    }, 1000);
-  };
-
-  const handleClick = (feature: Feature) => {
-    const clickedProvince = getPlaceMetadata(feature.properties);
-
-    if (!clickedProvince || !currentProvince) return;
-
-    if (clickedProvince.id !== currentProvince.id) {
-      showFeedback("wrong", clickedProvince.id);
-      setStreak(0);
-      return;
-    }
-
-    const nextGuessed = new Set(guessed);
-    nextGuessed.add(currentProvince.id);
-
-    setGuessed(nextGuessed);
-    setStreak((prev) => prev + 1);
-    setHint("");
-
-    if (nextGuessed.size === playableProvinces.length) {
-      setIsComplete(true);
-      showFeedback("correct");
-      return;
-    }
-
-    showFeedback("correct");
-
-    const nextProvince = getRandomProvince(nextGuessed);
-
-    if (nextProvince) {
-      setCurrentProvince(nextProvince);
-    }
-  };
-
-  const handleSkip = () => {
-    if (!currentProvince) return;
-
-    const nextProvince = getRandomProvince(guessed);
-
-    if (nextProvince) {
-      setCurrentProvince(nextProvince);
-    }
-
-    setStreak(0);
-    setHint("");
+    resetTimer();
     clearFeedback();
   };
 
   const handleIslandChange = (group?: IslandGroup) => {
-    setIslandGroup(group);
-
-    const nextProvinces = group
-      ? provinces.filter((province) => province.islandGroup === group)
-      : provinces;
-
-    const nextProvince =
-      nextProvinces[Math.floor(Math.random() * nextProvinces.length)];
-
-    setGuessed(new Set());
-    setStreak(0);
-    setHint("");
-    setCurrentProvince(nextProvince);
+    changeIsland(group);
+    resetTimer();
     clearFeedback();
-
-    setElapsedTime(0);
-    setIsComplete(false);
   };
 
+  useEffect(() => {
+    if (!isComplete) return;
+
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      origin: { y: 0.6 },
+    });
+  }, [isComplete]);
+
   return (
-    <main className="flex min-h-0 flex-1 flex-col gap-4 pt-8 md:flex-row">
-      <div className="h-[50vh] w-full shrink-0 md:h-auto md:min-w-0 md:flex-1">
-        <PhilippinesMap
-          islandGroup={islandGroup}
-          onPlaceClick={handleClick}
-          wrongPlaceId={wrongProvinceId}
-          guessedPlaceIds={guessed}
-        />
+    <main className="flex min-h-0 flex-1 flex-col gap-4 pt-4">
+      {/* Game mode selector */}
+      <div className="flex gap-2">
+        <Chip
+          selected={gameMode === "locate"}
+          onClick={() => handleModeChange("locate")}
+        >
+          LOCATE
+        </Chip>
+
+        <Chip
+          selected={gameMode === "name"}
+          onClick={() => handleModeChange("name")}
+        >
+          NAME IT
+        </Chip>
       </div>
 
-      <aside className="w-full shrink-0 space-y-2 md:w-80 lg:w-96">
-        <div className="grid grid-cols-3">
-          <div>
-            <p className="font-serif text-3xl">{guessed.size}</p>
-            <p className="text-mute font-mono text-xs font-bold">SCORE</p>
-          </div>
-
-          <div>
-            <p className="font-serif text-3xl">{streak}</p>
-            <p className="text-mute font-mono text-xs font-bold">STREAK</p>
-          </div>
-
-          <div>
-            <p className="font-serif text-3xl">{formatTime(elapsedTime)}</p>
-            <p className="text-mute font-mono text-xs font-bold">TIME</p>
-          </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 md:flex-row">
+        <div className="h-[50vh] w-full shrink-0 md:h-auto md:min-w-0 md:flex-1">
+          <PhilippinesMap
+            islandGroup={islandGroup}
+            highlightedPlaceId={
+              gameMode === "name" ? currentProvince?.id : undefined
+            }
+            onPlaceClick={
+              gameMode === "locate" ? locateGame.handleClick : undefined
+            }
+            wrongPlaceId={wrongProvinceId}
+            guessedPlaceIds={guessed}
+          />
         </div>
 
-        <Separator />
+        <aside className="w-full shrink-0 space-y-2 md:w-80 lg:w-96">
+          <GameStatus score={guessed.size} streak={streak} time={elapsedTime} />
 
-        <div className="space-y-2">
-          <p className="text-mute font-mono text-xs">Where is ...</p>
+          <Separator />
 
-          <p className="text-ink font-serif text-4xl">
-            {currentProvince?.name}
-          </p>
-        </div>
+          {gameMode === "locate" ? (
+            <LocateQuestion provinceName={currentProvince?.name} />
+          ) : (
+            <NameQuestion
+              choices={nameGame.choices}
+              onAnswer={nameGame.handleAnswer}
+            />
+          )}
 
-        <Separator />
+          <Separator />
 
-        <div>
-          <p className="text-mute h-8">
-            {feedback === "correct" && (
-              <span className="text-ok">Correct!</span>
-            )}
+          <div>
+            <p className="text-mute h-8">
+              {feedback === "correct" && (
+                <span className="text-ok">Correct!</span>
+              )}
 
-            {feedback === "wrong" && (
-              <span className="text-bad">Wrong — try again.</span>
-            )}
+              {feedback === "wrong" && (
+                <span className="text-bad">Wrong — try again.</span>
+              )}
+            </p>
 
-            {!feedback && hint && `Hint: it's in ${hint}`}
-          </p>
+            <div className="flex flex-wrap gap-2">
+              <Chip onClick={handleSkip}>SKIP</Chip>
 
-          <div className="flex flex-wrap gap-2">
-            <Chip onClick={() => setHint(currentProvince?.islandGroup ?? "")}>
-              HINT
-            </Chip>
-
-            <Chip onClick={handleSkip}>SKIP</Chip>
-
-            <Chip onClick={() => handleIslandChange(islandGroup)}>RESTART</Chip>
+              <Chip onClick={() => handleIslandChange(islandGroup)}>
+                RESTART
+              </Chip>
+            </div>
           </div>
-        </div>
 
-        <Separator />
+          <Separator />
 
-        <IslandSelector value={islandGroup} onChange={handleIslandChange} />
+          <IslandSelector value={islandGroup} onChange={handleIslandChange} />
 
-        <Separator />
+          <Separator />
 
-        <div className="space-y-1">
           <ProgressBar value={guessed.size} max={playableProvinces.length} />
-        </div>
-      </aside>
+        </aside>
+      </div>
     </main>
   );
 }
