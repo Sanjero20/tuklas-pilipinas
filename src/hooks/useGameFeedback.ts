@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 type Feedback = "correct" | "wrong" | null;
 
-function useGameFeedback() {
+export function useGameFeedback() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [wrongProvinceId, setWrongProvinceId] = useState<string | null>(null);
 
