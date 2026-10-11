@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import Button from "../ui/Button";
 
 function CtaBand() {
@@ -13,7 +14,9 @@ function CtaBand() {
           </p>
         </div>
 
-        <Button>START TRAINING</Button>
+        <Link href="/play">
+          <Button>START TRAINING</Button>
+        </Link>
       </div>
     </section>
   );
