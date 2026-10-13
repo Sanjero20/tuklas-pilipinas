@@ -1,75 +1,60 @@
-# React + TypeScript + Vite
+# Tuklas Pilipinas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Learn the map of the Philippines, province by province.**
 
-Currently, two official plugins are available:
+Tuklas Pilipinas (_tuklas_ means "to discover") is an interactive geography trainer that helps you memorize where every Philippine province is. It runs entirely in the browser: no account, no backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**[Live demo](https://tuklas-pilipinas.vercel.app)**
 
-## React Compiler
+![Tuklas Pilipinas screenshot](./docs/screenshot.png)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- **Interactive map.** Pan, zoom and tap provinces on a Leaflet map built from GeoJSON boundaries.
+- **Learn, then test yourself.** Explore the provinces first, then practice recalling them.
+- **Instant feedback.** Correct and wrong answers are shown right away, with a small celebration when you do well.
+- **Works on desktop and mobile.** Responsive layout built with Tailwind CSS.
+- **Fast and static.** A single-page app with client-side routing, deployed on Vercel.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+You need [Node.js](https://nodejs.org) (a current LTS version) and [pnpm](https://pnpm.io).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# clone the repository
+git clone https://github.com/Sanjero20/tuklas-pilipinas.git
+cd tuklas-pilipinas
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# install dependencies
+pnpm install
 
+# start the dev server
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Then open the local URL that Vite prints (usually `http://localhost:5173`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command        | What it does                                                   |
+| -------------- | -------------------------------------------------------------- |
+| `pnpm dev`     | Start the Vite dev server with hot reload                      |
+| `pnpm build`   | Type-check with `tsc` and create a production build in `dist/` |
+| `pnpm preview` | Preview the production build locally                           |
+| `pnpm lint`    | Run ESLint                                                     |
 
-```
+## Data
+
+Province boundaries come from this [Repository](https://github.com/bendlikeabamboo/barangay-boundaries-repository/releases/tag/v2026.4.13.0) GeoJSON data derived from official PSA/NAMRIA boundaries.
+
+## Deployment
+
+The app is deployed on Vercel. `vercel.json` rewrites all routes to `index.html` so direct links to client-side routes work. To deploy your own copy, import the repository in Vercel; the default Vite settings (`pnpm build`, output `dist`) are all you need.
+
+## Contributing
+
+Issues and suggestions are welcome. If you find a wrong or outdated province boundary, please open an issue with the correct source.
+
+## Author
+
+Made by [Sanjero20](https://github.com/Sanjero20).
